@@ -23,9 +23,13 @@ def main():
     with open('% s-% s.csv'%(file_name, current_time), 'w', newline='') as csvfile:
         csv_writer = csv.writer(csvfile, delimiter=',')
         if sample_type == "performance":
-            csv_writer.writerow(['Time', 'Duration', 'API path', 'Is Exception?'])
+            csv_writer.writerow(['Time', 'Duration(ms)', 'API path', 'Is Exception?', 'Headers', 'Params'])
             for entry in response['log_entries']:
-                csv_writer.writerow([time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(entry['time'])), entry['duration'], entry['path'], entry['is_exception']])
+                sanitized_entry_id = entry['id']
+                sample_url = base_url + "% s.json?token=% s"%(sanitized_entry_id, token)
+                print(sample_url)
+                sample_log = requests.get(sample_url).json()
+                csv_writer.writerow([time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(entry['time'])), entry['duration'], entry['path'], entry['is_exception'], sample_log['environment'], sample_log['params']])
         else:
             csv_writer.writerow(['Error Id on Appsignal', 'Action', 'Exception Name', 'Exception Message', 'Headers', 'Params'])
             for entry in response['log_entries']:
